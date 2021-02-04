@@ -1,0 +1,37 @@
+; make strlen TRAP x30
+; takes the address of a string in R0
+; returns its length in R1
+.ORIG x3000
+
+; setup the trap
+LEA R0, STRLEN_TRAP
+STI R0, STRLEN_TRAPVEC
+
+; test the code
+LEA R0, TEST_STRING
+TRAP x30
+; we expect R1 to be the length of TEST_STRING
+HALT
+
+STRLEN_TRAPVEC .FILL x0030
+
+STRLEN_TRAP
+  ST R0, STRLEN_SAVE_R0
+  ST R2, STRLEN_SAVE_R2
+  AND R1, R1, #0
+STRLEN_LOOP
+  LDR R2, R0, #0
+  BRz STRLEN_DONE
+  ADD R1, R1, #1
+  ADD R0, R0, #1
+  BRnzp STRLEN_LOOP
+STRLEN_DONE
+  LD R0, STRLEN_SAVE_R0
+  LD R2, STRLEN_SAVE_R2
+  RET
+STRLEN_SAVE_R0 .FILL #0
+STRLEN_SAVE_R2 .FILL #0
+
+TEST_STRING .STRINGZ "Hello, world"
+
+.END
